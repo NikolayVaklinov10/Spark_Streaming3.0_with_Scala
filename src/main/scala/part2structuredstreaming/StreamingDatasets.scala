@@ -1,6 +1,6 @@
 package part2structuredstreaming
 
-import org.apache.spark.sql.{Encoders, SparkSession}
+import org.apache.spark.sql.{DataFrame, Dataset, Encoders, SparkSession}
 import org.apache.spark.sql.functions._
 import common._
 
@@ -14,7 +14,7 @@ object StreamingDatasets {
   // the implicit needed for the conversion
   import spark.implicits._
 
-  def readCars() = {
+  def readCars(): Dataset[Car] = {
     // useful for DF -> DS transformations
     val carEncoder = Encoders.product[Car]
 
@@ -26,14 +26,50 @@ object StreamingDatasets {
       .select(from_json(col("value"), carsSchema).as("car")) // composite column (struct)
       .selectExpr("car.*") // DF with multiple columns
       .as[Car](carEncoder) // encoder can be passed implicitly with spark.implicits
-
   }
+
+  def showCarNames() = {
+    val carsDS: Dataset[Car] = readCars()
+
+    // transformations here
+    val carNamesDF: DataFrame = carsDS.select(col("Name")) // DF
+    // collection transformations maintain type info
+    val carNamesAlt: Dataset[String] = carsDS.map(_.Name)
+
+    carNamesAlt.writeStream
+      .format("console")
+      .outputMode("append")
+      .start()
+      .awaitTermination()
+  }
+
+  /**
+   * Exercises
+   *
+   * 1) Count how many POWERFUL cars we have in the DS (HP > 140)
+   * 2) Average HP for the entire dataset
+   *   (use the complete output mode)
+   * 3) Count the cars by origin
+   */
+
+    def powerfulCars() = {
+      val carsDS = readCars()
+      carsDS.filter(_.Horsepower.getOrElse(0L) > 140)
+        .writeStream
+        .format("console")
+        .outputMode("append")
+        .start()
+        .awaitTermination()
+    }
+
+
+
 
 
 
 
   def main(args: Array[String]): Unit = {
-
+    powerfulCars()
   }
 
 }
