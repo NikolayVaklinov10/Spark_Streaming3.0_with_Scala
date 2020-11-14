@@ -47,9 +47,31 @@ object StreamingAggregations {
       .awaitTermination()
   }
 
+  // counting occurrences of the "name" value
+  def groupNames(): Unit = {
+    val lines: DataFrame = spark.readStream
+      .format("socket")
+      .option("host", "localhost")
+      .option("port", 12345)
+      .load()
+
+    val names = lines
+      .select(col("value").as("name"))
+      .groupBy(col("name")) // RelationalGroupedDataset
+      .count()
+
+    names.writeStream
+      .format("console")
+      .outputMode("complete")
+      .start()
+      .awaitTermination()
+
+
+  }
+
 
   def main(args: Array[String]): Unit = {
-    numericalAggregations(mean)
+    groupNames()
   }
 
 }
