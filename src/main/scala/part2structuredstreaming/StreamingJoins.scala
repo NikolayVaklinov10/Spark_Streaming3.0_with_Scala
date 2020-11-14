@@ -51,12 +51,47 @@ object StreamingJoins {
       .outputMode("append")
       .start()
       .awaitTermination()
-
   }
+
+    // since Spark 2.3 we have stream vs stream joins
+    def joinStreamWithStream() = {
+      val streamedBandsDF = spark.readStream
+        .format("socket")
+        .option("host", "localhost")
+        .option("port", 12345)
+        .load() // a DF with a single column "value" of type String
+        .select(from_json(col("value"), bandsSchema).as("band"))
+        .selectExpr("band.id as id", "band.name as name", "band.hometown as hometown", "band.year as year")
+
+      val streamedGuitaristsDF = spark.readStream
+        .format("socket")
+        .option("host", "localhost")
+        .option("port", 12346)
+        .load()
+        .select(from_json(col("value"), guitarPlayers.schema).as("guitarPlayer"))
+        .selectExpr("guitarPlayer.id as id", "guitarPlayer.name as name", "guitarPlayer.guitars as guitars", "guitarPlayer.band as band")
+
+      // join stream with stream
+      val streamedJoin = streamedBandsDF.join(streamedGuitaristsDF, streamedGuitaristsDF.col("band") === streamedBandsDF.col("id"))
+
+      /*
+        - inner joins are supported
+        - left/right outer joins ARE supported, but MUST have watermarks
+        - full outer joins are NOT supported
+       */
+
+      streamedJoin.writeStream
+        .format("console")
+        .outputMode("append") // only append supported for stream vs stream join
+        .start()
+        .awaitTermination()
+    }
+
+
 
 
   def main(args: Array[String]): Unit = {
-    joinStreamWithStatic()
+    joinStreamWithStream()
   }
 
 }
