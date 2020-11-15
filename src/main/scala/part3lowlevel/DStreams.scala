@@ -10,10 +10,25 @@ object DStreams {
     .master("local[2]")
     .getOrCreate()
 
+  /*
+  Spark Streaming Context = entry point to the DStreams API
+  - needs the spark context
+  - a duration = batch interval
+   */
+
   val ssc = new StreamingContext(spark.sparkContext, Seconds(1))
 
+  /*
+  - define input sources by creating DStreams
+  - define transformations on DStreams
+  - start ALL computations with ssc.start()
+  - no more computations can be added
+  - await termination, or stop the computation
+  - you cannot restart the ssc
+   */
+
   def main(args: Array[String]): Unit = {
-    
+
   }
 
 }
