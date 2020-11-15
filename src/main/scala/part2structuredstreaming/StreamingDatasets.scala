@@ -28,7 +28,7 @@ object StreamingDatasets {
       .as[Car](carEncoder) // encoder can be passed implicitly with spark.implicits
   }
 
-  def showCarNames() = {
+  def showCarNames(): Unit = {
     val carsDS: Dataset[Car] = readCars()
 
     // transformations here
@@ -52,7 +52,7 @@ object StreamingDatasets {
    * 3) Count the cars by origin
    */
 
-    def powerfulCars() = {
+    def powerfulCars(): Unit = {
       val carsDS = readCars()
       carsDS.filter(_.Horsepower.getOrElse(0L) > 140)
         .writeStream
@@ -62,7 +62,7 @@ object StreamingDatasets {
         .awaitTermination()
     }
 
-  def averageHorsepower() = {
+  def averageHorsepower(): Unit = {
     val carsDS = readCars()
     carsDS.select(avg(col("Horsepower")))
       .writeStream
@@ -72,7 +72,7 @@ object StreamingDatasets {
       .awaitTermination()
   }
 
-  def carsByOrigin() = {
+  def carsByOrigin(): Unit = {
     val carsDS = readCars()
 
     val carCountByOrigin = carsDS.groupBy(col("Origin")).count() // option 1
@@ -85,12 +85,6 @@ object StreamingDatasets {
       .start()
       .awaitTermination()
   }
-
-
-
-
-
-
 
 
   def main(args: Array[String]): Unit = {
