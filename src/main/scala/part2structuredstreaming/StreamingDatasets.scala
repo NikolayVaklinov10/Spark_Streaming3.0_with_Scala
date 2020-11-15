@@ -62,6 +62,31 @@ object StreamingDatasets {
         .awaitTermination()
     }
 
+  def averageHorsepower() = {
+    val carsDS = readCars()
+    carsDS.select(avg(col("Horsepower")))
+      .writeStream
+      .format("console")
+      .outputMode("complete")
+      .start()
+      .awaitTermination()
+  }
+
+  def carsByOrigin() = {
+    val carsDS = readCars()
+
+    val carCountByOrigin = carsDS.groupBy(col("Origin")).count() // option 1
+    val carCountByOriginAlt = carsDS.groupByKey(car => car.Origin).count() // option 2 with the Dataset API
+
+    carCountByOriginAlt
+      .writeStream
+      .format("console")
+      .outputMode("complete")
+      .start()
+      .awaitTermination()
+  }
+
+
 
 
 
@@ -69,7 +94,7 @@ object StreamingDatasets {
 
 
   def main(args: Array[String]): Unit = {
-    powerfulCars()
+    carsByOrigin()
   }
 
 }
