@@ -44,6 +44,23 @@ object DStreamsTransformations {
 
   def highIncomePeople() = readPeople().filter(_.salary > 80000)
 
+  // count
+  def countPeople(): DStream[Long] = readPeople().count() // the number of entries in every batch
+
+  // count by value, PER BATCH
+  def countNames(): DStream[(String, Long)] = readPeople().map(_.firstName).countByValue()
+
+  /*
+   reduce by key
+   - works on DStream of tuples
+   - works PER BATCH
+  */
+  def countNamesReduce(): DStream[(String, Int)] =
+    readPeople()
+      .map(_.firstName)
+      .map(name => (name, 1))
+      .reduceByKey((a, b) => a + b)
+
   def main(args: Array[String]): Unit = {
     val stream = highIncomePeople()
     stream.print()
