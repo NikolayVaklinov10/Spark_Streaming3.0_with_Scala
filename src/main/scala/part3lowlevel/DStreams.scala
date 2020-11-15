@@ -41,7 +41,8 @@ object DStreams {
     val wordsStream: DStream[String] = socketStream.flatMap(line => line.split(" "))
 
     // action
-    wordsStream.print()
+//    wordsStream.print()
+    wordsStream.saveAsTextFiles("src/main/resources/data/words/") // each folder = RDD = batch, each file = a partition of the RDD
 
     ssc.start()
     ssc.awaitTermination()
