@@ -11,9 +11,9 @@ object IntegratingJDBC {
     .getOrCreate()
 
   val driver = "org.postgresql.Driver"
-  val url = "jdbc:postgresql://localhost:5432/rtjvm"
-  val user = "docker"
-  val password = "docker"
+  val url = "jdbc:postgresql://localhost:****/*****"
+  val user = "*****"
+  val password = "*****"
 
   import spark.implicits._
 
