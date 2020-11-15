@@ -91,7 +91,7 @@ object IntegratingKafkaDStreams {
 
 
   def main(args: Array[String]): Unit = {
-      readFromKafka()
+    writeToKafka()
     }
 
 }
