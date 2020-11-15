@@ -42,10 +42,10 @@ object DStreamsTransformations {
     List(person.firstName, person.middleName)
   }
 
-
+  def highIncomePeople() = readPeople().filter(_.salary > 80000)
 
   def main(args: Array[String]): Unit = {
-    val stream = peopleAges()
+    val stream = highIncomePeople()
     stream.print()
     ssc.start()
     ssc.awaitTermination()
