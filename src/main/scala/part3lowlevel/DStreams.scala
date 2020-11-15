@@ -1,5 +1,6 @@
 package part3lowlevel
 
+import java.io.{File, FileWriter}
 import java.sql.Date
 import java.text.SimpleDateFormat
 
@@ -46,7 +47,36 @@ object DStreams {
     ssc.awaitTermination()
   }
 
+  def createNewFile() = {
+    new Thread(() => {
+      Thread.sleep(5000)
+
+      val path = "src/main/resources/data/stocks"
+      val dir = new File(path)
+      val nFiles = dir.listFiles().length
+      val newFile = new File(s"$path/newStocks$nFiles.csv")
+      newFile.createNewFile()
+
+      val writer = new FileWriter(newFile)
+      writer.write(
+        """
+          |AAPL,Jan 1 2000,25.94
+          |AAPL,Feb 1 2000,28.66
+          |AAPL,Mar 1 2000,33.95
+          |AAPL,Apr 1 2000,31.01
+          |AAPL,May 1 2000,21
+          |AAPL,Jun 1 2000,26.19
+          |AAPL,Jul 1 2000,25.41
+          |AAPL,Aug 1 2000,30.47
+          |""".stripMargin.trim)
+
+      writer.close()
+
+    }).start()
+  }
+
   def readFromFile(): Unit = {
+    createNewFile() // operates on another thread
     // defined DStream
     val stocksFilePath = "src/main/resources/data/stocks"
     val textStream: DStream[String] = ssc.textFileStream(stocksFilePath)
@@ -58,7 +88,7 @@ object DStreams {
       val tokens = line.split(",")
       val company = tokens(0)
       val date = new Date(dataFormat.parse(tokens(1)).getTime)
-      val price = tokens(1).toDouble
+      val price = tokens(2).toDouble
 
       Stock(company, date, price)
     }
