@@ -1,5 +1,7 @@
 package part3lowlevel
 
+import java.io.File
+
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import java.sql.Date
@@ -60,6 +62,19 @@ object DStreamsTransformations {
       .map(_.firstName)
       .map(name => (name, 1))
       .reduceByKey((a, b) => a + b)
+
+  import spark.implicits._ // for encoders to create Datasets
+
+  // foreach rdd
+  def saveToJson() = readPeople().foreachRDD { rdd =>
+    val ds = spark.createDataset(rdd)
+    val f = new File("src/main/resources/data/people")
+    val nFiles = f.listFiles().length
+    val path = s"src/main/resources/data/people/people$nFiles.json"
+
+    ds.write.json(path)
+  }
+
 
   def main(args: Array[String]): Unit = {
     val stream = highIncomePeople()
