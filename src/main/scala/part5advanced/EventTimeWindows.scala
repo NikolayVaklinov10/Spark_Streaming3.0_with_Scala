@@ -1,8 +1,11 @@
 package part5advanced
 
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.functions.{col, from_json}
+import org.apache.spark.sql.functions.{col, from_json, window}
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType, TimestampType}
+
+import org.apache.spark.sql.functions._
+
 
 object EventTimeWindows {
 
@@ -29,6 +32,25 @@ object EventTimeWindows {
   def readPurchasesFromFile() = spark.readStream
     .schema(onlinePurchaseSchema)
     .json("src/main/resources/data/purchases")
+
+  def aggregatePurchasesByTumblingWindow() = {
+    val purchasesDF = readPurchasesFromSocket()
+
+    val windowByDay = purchasesDF
+      .groupBy(window(col("time"), "1 day").as("time")) // tumbling window: sliding duration == window duration
+      .agg(sum("quantity").as("totalQuantity"))
+      .select(
+        col("time").getField("start").as("start"),
+        col("time").getField("end").as("end"),
+        col("totalQuantity")
+      )
+
+    windowByDay.writeStream
+      .format("console")
+      .outputMode("complete")
+      .start()
+      .awaitTermination()
+  }
 
 
 
