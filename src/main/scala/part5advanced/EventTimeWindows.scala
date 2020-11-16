@@ -52,6 +52,55 @@ object EventTimeWindows {
       .awaitTermination()
   }
 
+  /**
+   * Exercises
+   * 1) Show the best selling product of every day, +quantity sold.
+   * 2) Show the best selling product of every 24 hours, updated every hour.
+   *
+   */
+
+    def bestSellingProductPerDay() = {
+      val purchasesDF = readPurchasesFromFile()
+
+      val bestSelling = purchasesDF
+        .groupBy(col("item"), window(col("time"), "1 day").as("day"))
+        .agg(sum("quantity").as("totalQuantity"))
+        .select(
+          col("day").getField("start").as("start"),
+          col("day").getField("end").as("end"),
+          col("item"),
+          col("totalQuantity")
+        )
+        .orderBy(col("day"), col("totalQuantity").desc)
+
+      bestSelling.writeStream
+        .format("console")
+        .outputMode("complete")
+        .start()
+        .awaitTermination()
+
+    }
+
+  def bestSellingProductEvery24h() = {
+    val purchasesDF = readPurchasesFromFile()
+
+    val bestSelling = purchasesDF
+      .groupBy(col("item"), window(col("time"), "1 day", "1 hour").as("time"))
+      .agg(sum("quantity").as("totalQuantity"))
+      .select(
+        col("time").getField("start").as("start"),
+        col("time").getField("end").as("end"),
+        col("item"),
+        col("totalQuantity")
+      )
+      .orderBy(col("start"), col("totalQuantity").desc)
+
+    bestSelling.writeStream
+      .format("console")
+      .outputMode("complete")
+      .start()
+      .awaitTermination()
+  }
 
 
 
@@ -60,7 +109,6 @@ object EventTimeWindows {
 
 
   def main(args: Array[String]): Unit = {
-
-  }
+    bestSellingProductEvery24h()  }
 
 }
