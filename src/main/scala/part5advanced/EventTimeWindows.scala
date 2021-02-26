@@ -105,10 +105,8 @@ object EventTimeWindows {
 
 
 
-
-
-
   def main(args: Array[String]): Unit = {
-    bestSellingProductEvery24h()  }
+    bestSellingProductPerDay()
+   }
 
 }
